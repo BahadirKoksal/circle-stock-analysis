@@ -1,0 +1,90 @@
+-- ============================================
+-- STEP 2: Data Quality — Primary Key Checks
+-- Validate primary keys in both tables
+-- ============================================
+
+-- Check: is (date_date + product_id) unique in circle_sales?
+-- Expected result: no rows returned
+SELECT
+  date_date,
+  product_id,
+  COUNT(*) AS nb
+FROM course15.circle_sales AS s
+GROUP BY date_date, product_id
+HAVING nb >= 2
+ORDER BY nb DESC;
+-- circle_sales primary key: date_date + product_id ✅
+
+-- Check: is model_id unique in circle_stock?
+-- Expected result: rows returned → model_id alone is NOT the PK
+SELECT
+  model_id,
+  COUNT(*) AS nb
+FROM course15.circle_stock AS t
+GROUP BY t.model_id
+HAVING nb >= 2
+ORDER BY nb DESC;
+-- circle_stock'taki primary key bulundu — YANI BULUNAMADI
+-- model_id is NOT unique (multiple sizes per model)
+
+-- Check: is (model_id + color + size) unique in circle_stock?
+-- Expected result: no rows returned
+SELECT
+  model_id,
+  color,
+  size,
+  COUNT(*) AS nb
+FROM course15.circle_stock
+GROUP BY model_id, color, size
+HAVING nb >= 2
+ORDER BY nb DESC;
+-- Primary key candidate: model_id + color + size ✅
+
+-- Preview: derived product_id using CONCAT
+SELECT
+  CONCAT(model_id, "_", color, "_", size) AS product_id,
+  model_id,
+  color,
+  size
+FROM course15.circle_stock
+LIMIT 10;
+-- PRIMARY key olarak bulduğumuz sütunu tek satırda döndürdük
+
+-- Check: is derived product_id unique?
+-- Expected: only null values appear (size is null for some accessories)
+SELECT
+  CONCAT(model_id, "_", color, "_", size) AS product_id,
+  COUNT(*) AS nb
+FROM course15.circle_stock AS t
+GROUP BY product_id
+HAVING nb >= 2
+ORDER BY nb DESC;
+-- product_id'nin gerçekten benzersiz olup olmadığını test ediyor.
+-- DEĞİL — NULL VAR. Bulalım.
+
+-- Find rows where product_id is NULL (size is NULL)
+SELECT
+  model_id AS product_model,
+  color AS product_color,
+  size AS product_size,
+  CONCAT(model_id, "_", color, "_", size) AS product_id,
+  model_name,
+  color_name AS color_description,
+  new AS product_new,
+  price AS product_price,
+  forecast_stock AS forecasted_stock_level,
+  stock AS current_stock_level
+FROM course15.circle_stock AS t
+WHERE CONCAT(model_id, "_", color, "_", size) IS NULL;
+-- product_id NULL olan satırları bul — aksesuarlar (size = NULL)
+
+-- Fix: use IFNULL to replace NULL size with "no-size"
+-- Verify fix works: no rows should be returned
+SELECT
+  CONCAT(model_id, "_", color, "_", IFNULL(size, "no-size")) AS product_id,
+  COUNT(*) AS nb
+FROM course15.circle_stock AS t
+GROUP BY product_id
+HAVING nb >= 2
+ORDER BY nb DESC;
+-- Düzeltilmiş product_id tekrar ediyor mu? Boşsa benzersiz ✅
