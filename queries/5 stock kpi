@@ -1,0 +1,28 @@
+-- ============================================
+-- STEP 5: Stock KPI Columns
+-- Add in_stock flag and stock_value metric
+-- ============================================
+
+-- Build circle_stock_kpi:
+-- in_stock: binary flag — is the product available?
+-- stock_value: total monetary value of current stock
+CREATE OR REPLACE TABLE course15.circle_stock_kpi AS
+SELECT
+  t.*,
+
+  -- Binary availability flag
+  CASE
+    WHEN t.stock = 0 THEN 0
+    ELSE 1
+  END AS in_stock,
+
+  -- Total stock value in €
+  ROUND(t.price * t.stock, 2) AS stock_value
+
+FROM course15.circle_stock_cat AS t;
+
+
+-- Verify
+SELECT *
+FROM course15.circle_stock_kpi
+LIMIT 20;
