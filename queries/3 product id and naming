@@ -1,0 +1,44 @@
+-- ============================================
+-- STEP 3: Product ID Engineering & Naming
+-- Build readable stock table with derived fields
+-- ============================================
+
+-- Build circle_stock_name:
+-- - Derive product_id using CONCAT + IFNULL fix
+-- - Derive product_name for reporting
+-- - Rename columns for clarity
+CREATE OR REPLACE TABLE course15.circle_stock_name AS
+SELECT
+  -- Primary key components
+  t.model_id        AS product_model,
+  t.color           AS product_color,
+  t.size            AS product_size,
+
+  -- Product ID (composite key as single column)
+  CONCAT(t.model_id, "_", t.color, "_", IFNULL(t.size, "no-size")) AS product_id,
+
+  -- Product names
+  t.model_name,
+  t.color_name AS color_description,
+  CONCAT(
+    t.model_name, " ",
+    t.color_name,
+    IF(t.size IS NULL, "", CONCAT(" - Size ", t.size))
+  ) AS product_name,
+
+  -- Product attributes
+  t.new   AS product_new,
+  t.price AS product_price,
+
+  -- Stock metrics
+  t.forecast_stock AS forecasted_stock_level,
+  t.stock          AS current_stock_level
+
+FROM course15.circle_stock AS t
+ORDER BY product_id;
+
+
+-- Verify
+SELECT *
+FROM course15.circle_stock_name
+LIMIT 20;
