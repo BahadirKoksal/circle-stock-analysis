@@ -1,0 +1,75 @@
+-- ============================================
+-- STEP 7: Sales Analysis & Critical Stock Alert
+-- Top sellers, daily sales rate,
+-- days-of-stock remaining for top products
+-- ============================================
+
+
+-- ----------------------------------------
+-- 7.1 Top 10 best-selling products (all time)
+-- ----------------------------------------
+CREATE OR REPLACE TABLE course15.top_products AS
+SELECT
+  product_id,
+  SUM(qty) AS total_qty
+FROM course15.circle_sales
+GROUP BY product_id
+ORDER BY total_qty DESC
+LIMIT 10;
+-- en çok satan 10 ürün
+
+
+-- ----------------------------------------
+-- 7.2 Add top_products flag to stock table
+-- Default: 0 for all rows
+-- ----------------------------------------
+CREATE OR REPLACE TABLE course15.circle_stock_kpi_top AS
+SELECT
+  *,
+  0 AS top_products
+FROM course15.circle_stock_kpi;
+
+
+-- Update: set top_products = 1 for top 10 sellers
+UPDATE course15.circle_stock_kpi_top t
+SET top_products = 1
+WHERE t.product_id IN (
+  SELECT product_id
+  FROM course15.top_products
+);
+
+
+
+-- ----------------------------------------
+-- 7.3 Last 91 days sales per product
+-- qty_91: total sold in last 91 days
+-- avg_daily_qty_91: average daily sales rate
+-- ----------------------------------------
+CREATE OR REPLACE TABLE course15.circle_sales_daily AS
+SELECT
+  product_id,
+  SUM(qty)                    AS qty_91,
+  ROUND(SUM(qty) / 91, 2)    AS avg_daily_qty_91
+FROM course15.circle_sales
+WHERE date_date >= DATE_SUB('2021-10-01', INTERVAL 91 DAY)
+GROUP BY product_id;
+
+
+
+-- ----------------------------------------
+-- 7.4 Critical stock alert
+-- Top sellers with stock < 50
+-- Shows how many days of stock remain
+-- ----------------------------------------
+SELECT
+  s.product_id,
+  s.product_name,
+  s.stock,
+  s.forecast_stock,
+  d.avg_daily_qty_91,
+  ROUND(s.forecast_stock / d.avg_daily_qty_91, 1) AS nb_days
+FROM course15.circle_stock_kpi_top s
+JOIN course15.circle_sales_daily d USING(product_id)
+WHERE s.top_products = 1
+  AND s.stock < 50
+ORDER BY nb_days;
