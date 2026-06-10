@@ -1,0 +1,29 @@
+-- ============================================
+-- STEP 4: Category Labeling
+-- Derive model_type from product name using
+-- REGEXP_CONTAINS + CASE WHEN
+-- ============================================
+
+-- Build circle_stock_cat:
+-- Add model_type column by reading keywords in model_name
+-- LOWER() normalizes case before matching
+-- REGEXP_CONTAINS allows multiple keywords with | (OR)
+CREATE OR REPLACE TABLE course15.circle_stock_cat AS
+SELECT
+  t.*,
+  CASE
+    WHEN REGEXP_CONTAINS(LOWER(t.model_name), r"tour de cou|tapis|gourde") THEN "Aksesuar"
+    WHEN REGEXP_CONTAINS(LOWER(t.model_name), r"t-shirt")                  THEN "T-shirt"
+    WHEN REGEXP_CONTAINS(LOWER(t.model_name), r"brassiere|crop-top")       THEN "Crop-top"
+    WHEN REGEXP_CONTAINS(LOWER(t.model_name), r"legging")                  THEN "Legging"
+    WHEN REGEXP_CONTAINS(LOWER(t.model_name), r"short")                    THEN "Şort"
+    WHEN REGEXP_CONTAINS(LOWER(t.model_name), r"debardeur|haut")           THEN "Üst"
+    ELSE "Other"
+  END AS model_type
+FROM course15.circle_stock_name AS t;
+
+
+-- Verify
+SELECT *
+FROM course15.circle_stock_cat
+LIMIT 20;
