@@ -1,0 +1,50 @@
+-- ============================================
+-- STEP 6: Stock Reports
+-- Global, category-level, and model-level
+-- stock dashboard queries
+-- ============================================
+
+
+-- ----------------------------------------
+-- 6.1 Global stock summary
+-- ----------------------------------------
+SELECT
+  COUNT(*)                    AS total_products,
+  SUM(in_stock)               AS products_in_stock,
+  ROUND(1 - AVG(in_stock), 3) AS shortage_rate,
+  ROUND(SUM(stock_value), 2)  AS total_stock_value,
+  SUM(stock)                  AS total_stock
+FROM course15.circle_stock_kpi;
+-- genel stok istatistikleri
+
+
+-- ----------------------------------------
+-- 6.2 Stock KPIs by category (model_type)
+-- ----------------------------------------
+SELECT
+  model_type,
+  COUNT(*)                    AS total_products,
+  SUM(in_stock)               AS products_in_stock,
+  ROUND(1 - AVG(in_stock), 3) AS shortage_rate,
+  ROUND(SUM(stock_value), 2)  AS total_stock_value,
+  SUM(stock)                  AS total_stock
+FROM course15.circle_stock_kpi
+GROUP BY model_type
+ORDER BY total_stock_value DESC;
+
+
+
+-- ----------------------------------------
+-- 6.3 Stock KPIs by model (product-level dashboard)
+-- ----------------------------------------
+SELECT
+  model_type,
+  model_name,
+  COUNT(*)                    AS total_products,
+  SUM(in_stock)               AS products_in_stock,
+  ROUND(1 - AVG(in_stock), 3) AS shortage_rate,
+  ROUND(SUM(stock_value), 2)  AS total_stock_value,
+  SUM(stock)                  AS total_stock
+FROM course15.circle_stock_kpi
+GROUP BY model_type, model_name
+ORDER BY total_stock_value DESC;
