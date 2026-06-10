@@ -1,0 +1,16 @@
+-- ============================================
+-- STEP 1: Data Exploration
+-- Preview both tables to understand structure
+-- ============================================
+
+-- Preview stock table
+SELECT *
+FROM course15.circle_stock;
+
+-- Preview sales table
+SELECT *
+FROM course15.circle_sales;
+
+-- Count rows in sales table
+SELECT COUNT(*)
+FROM course15.circle_sales; -- 20679 rows
